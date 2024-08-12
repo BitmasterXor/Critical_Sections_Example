@@ -1,0 +1,115 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, System.SyncObjs,
+  Vcl.ComCtrls;
+
+type
+  TForm1 = class(TForm)
+    Button1: TButton;
+    Label1: TLabel;
+    ProgressBar1: TProgressBar;
+    ProgressBar2: TProgressBar;
+    ProgressBar3: TProgressBar;
+    ProgressBar4: TProgressBar;
+    procedure FormCreate(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    CriticalSection: TCriticalSection;
+    procedure UpdateUILabel(ThreadID: Integer);
+    procedure UpdateProgressBars;
+  public
+    procedure ExecuteThread(ThreadID: Integer);
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  CriticalSection := TCriticalSection.Create;
+
+  // Initialize ProgressBars
+  ProgressBar1.Min := 0;
+  ProgressBar1.Max := 100;
+  ProgressBar1.Position := 0;
+
+  ProgressBar2.Min := 0;
+  ProgressBar2.Max := 100;
+  ProgressBar2.Position := 0;
+
+  ProgressBar3.Min := 0;
+  ProgressBar3.Max := 100;
+  ProgressBar3.Position := 0;
+
+  ProgressBar4.Min := 0;
+  ProgressBar4.Max := 100;
+  ProgressBar4.Position := 0;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  Thread1, Thread2: TThread;
+begin
+  Thread1 := TThread.CreateAnonymousThread(
+    procedure
+    begin
+      ExecuteThread(1);
+    end);
+  Thread2 := TThread.CreateAnonymousThread(
+    procedure
+    begin
+      ExecuteThread(2);
+    end);
+
+  Thread1.Start;
+  Thread2.Start;
+end;
+
+procedure TForm1.UpdateUILabel(ThreadID: Integer);
+begin
+  Label1.Caption := 'Thread ' + IntToStr(ThreadID) + ' is in control';
+end;
+
+procedure TForm1.UpdateProgressBars;
+begin
+  // Step all progress bars by 5
+  ProgressBar1.StepBy(5);
+  ProgressBar2.StepBy(5);
+  ProgressBar3.StepBy(5);
+  ProgressBar4.StepBy(5);
+end;
+
+procedure TForm1.ExecuteThread(ThreadID: Integer);
+var
+  i: Integer;
+begin
+  for i := 1 to 20 do  // 20 steps of 5 to reach 100
+  begin
+    CriticalSection.Enter;
+    try
+      // Update UI to show which thread is in control
+      TThread.Synchronize(nil,
+        procedure
+        begin
+          UpdateUILabel(ThreadID);
+          UpdateProgressBars;
+        end);
+    finally
+      CriticalSection.Leave;
+    end;
+
+    // Simulate work by sleeping for a short time
+    Sleep(500);
+  end;
+end;
+
+end.
+
