@@ -24,3 +24,9 @@ Check out the demo video on YouTube: [Delphi Multithreading Demo](https://youtu.
 
 ## License
 This project is licensed under the MIT License.
+
+## 📧 Contact
+
+Discord: BitmasterXor
+
+<p align="center">Made with ❤️ by: BitmasterXor, using Delphi RAD Studio</p>
